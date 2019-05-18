@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!-- saved from url=(0031)https://ic.qq.com/pim/login.jsp -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>林湾同步助手 云端管理中心--云通讯录管理中心</title>
+    <link rel="stylesheet" href="/login/login.css">
+    <script type="text/javascript" src="/jquery/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="/jquery/md5.js"></script>
+</head>
+
+<body style="">
+    <div class="login_bg_box">
+        <div class="header">
+            <div class="q-links">
+                <a href="https://pim.qq.com/" target="_blank">官网</a> |
+                <a href="http://support.qq.com/write.shtml?fid=731" target="_blank">我要反馈</a>
+            </div>
+            <h1 class="logo_info">通讯录管理中心</h1>
+        </div>
+        <div class="header_liner"></div>
+        <div class="wrapper w">
+            <div class="qr-p">
+                <img src="/login/3_28.png" alt="">
+            </div>
+            <div class="login-box">
+                   <div class="info_bar">
+                       <a class="bar_r" href="http://kf.qq.com/faq/120529MruMBV140722R36ZRj.html" target="_blank">常见问题<i></i></a>
+                   </div>
+                    <div id="yunLogin">
+                    <ul>
+                    <li>               
+						<p style="text" color="red" id="clerk"></p>
+					</li>
+                    <li>
+                     	<input type="text" name="username" id="username" value="" placeholder="你的手机号/邮箱" maxlength="50" autocomplete="off" class="" style="width:280px;height:30px;">
+                    </li>
+                    <li>
+                     	<input type="password" name="password" id="password" placeholder="密码" class="" style="width:280px;height:30px;">
+                    </li>
+                     <li>
+                        <a href="javascript:void(0);" title="点击更换验证码">
+            				<img id="imgVerify" src="" alt="更换验证码" height="36" width="40%" onclick="getVerify(this);">
+        				</a>
+                     	<input type="text" placeholder="验证码" id="verify_input" class="" style="width:100px;height:30px;">
+                    </li>
+                    <li class="btn-box">
+
+                    	<input type="submit" class="loginBtnSp" onclick="aVerify()" value="登录" id="login-button"/>
+                    </li>
+                    </ul>    
+                    </div>
+                    <div class="status">请使用林湾同步助手APP确认登录</div>
+                    <p class="ti">请用【我的-右上角设置-确认登录功能】功能</p>
+                    <noscript>
+                        <div class="noscript-box"><p class="noscript-tips">您的浏览器没有开启支持javascript，请开启支持后再刷新登录！</p></div>
+                    </noscript>
+                </div>
+        </div>
+    </div>
+    <div class="down_tips w clearfix">
+            <span class="tips_text fl">没安装林湾同步助手？</span>
+            <span class="tips_dw fl">
+                <div class="dowload_box hide">
+                   <div class="dowload_tit">请用手机扫码下载</div>
+                   <img class="dowload_img" src="/login/dowload_img_fix.png" alt="">
+                </div>
+           </span>
+        </div>
+    <div class="footer">
+        <p class="c">Copyright © 1998 - <span id="thisYear">2019</span> LinWan. All Rights Reserved.</p>
+        <p class="copy_t">林湾村公司 版权所有</p>
+    </div>
+    <div class="fuck-ie6">你的IE浏览器版本过低，为确保通讯录管理的安全和便捷，建议<a href="http://windows.microsoft.com/zh-CN/internet-explorer/download-ie" target="_blank" class="logClass" name="fuck_ie6">立即升级IE浏览器</a></div>
+
+<script>var contextPath = '',serverName = 'ic.qq.com', schema = 'https', error='',isLogin = false, daid = '';</script>
+
+<script>	
+    document.getElementById("thisYear").innerHTML= new Date().getFullYear();
+    </script>
+<script type="text/javascript">
+function getVerify(obj){
+    obj.src = "/login/getVerify?"+Math.random();
+}
+function aVerify(){
+        var value1 =$("#verify_input").val();
+		var value2 = $("#username").val();
+		var value3 = $("#password").val();
+		var value33=$.md5(value3);
+		var clerk = document.getElementById("clerk");
+        // alert(value);
+        $.ajax({
+            async: false,
+            type: 'post',
+            url: '/login/checkVerify',
+            dataType: "json",
+            data: {
+                verifyInput: value1,
+				username: value2,
+				password: value33
+            },
+            success: function (result) {
+                switch(result){
+				case 1:
+				clerk.innerText="没有产生验证码";
+				break;
+				case 2:
+				clerk.innerText="验证码输入错误";
+				break;
+				case 3:
+				clerk.innerText="用户名或密码错误";
+				break;
+				case 4:
+				clerk.innerText="验证成功";
+				window.location.href="/center?id="+value2;
+				break;
+				case 5:
+				clerk.innerText="服务器发生错误";
+				break;
+				default:
+				break;
+				}
+                // window.location.reload();
+            }
+        });
+    }
+</script>
+
+<iframe style="display: none;" src="/login/saved_resource.html"></iframe></body></html>

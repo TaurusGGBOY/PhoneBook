@@ -1,0 +1,20 @@
+spring:
+  thymeleaf:
+    encoding:UTF-8
+    mode=HTML5
+    suffix=.html
+    prefix=classpath:/templates/
+    content-type=text/html
+    cache=false
+    static-path-pattern=/static/**
+  datasource:
+    url: jdbc:mysql://localhost:3306/sqlclass?characterEncoding=GBK&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+  mybatis:
+    mapper-locations: classpath:mapper/*.xml

@@ -1,0 +1,276 @@
+require.config({
+	baseUrl: '/src/js/',
+	paths: {
+		'jquery': 'lib/jquery',
+		'jquery.migrate': 'lib/jquery.migrate',
+		'md5': 'lib/jquery.md5',
+		'cookie': 'lib/cookie'
+	},
+	shim: {
+        'md5': ['jquery'],
+        'jquery.migrate': ['jquery']//兼容低版本的插件
+	}
+});
+require(['jquery','jquery.migrate','md5'],function($){
+	console.log('jquery',$)
+	// Cookies.set('firstLogin', 1, new Date(2020,10,10));
+	
+	//qqlogin
+//	var uin = -1205622;
+//	var s_url,
+//		proxy_url,
+//		loginurl;
+//	if(window.location.host == 'ic.qq.com' || window.location.host == 'pim.qq.com'){
+//		s_url = encodeURI('https://'+ serverName + contextPath +'/pim/login.jsp');
+//		proxy_url=encodeURI('https://'+ serverName + contextPath +'/proxy.html');
+//		loginurl = 'https://xui.ptlogin2.qq.com/cgi-bin/xlogin?proxy_url='+proxy_url+'&hide_border=1&hide_title_bar=1&appid=727000002&daid='+daid+'&style=23&s_url=' + s_url;
+//	}else{
+//		s_url=encodeURI('http://'+ serverName + contextPath +'/pim/login.jsp')
+//		proxy_url=encodeURI('http://'+ serverName + contextPath +'/proxy.html');
+//		loginurl = 'http://xui.ptlogin2.qq.com/cgi-bin/xlogin?proxy_url='+proxy_url+'&hide_border=1&hide_title_bar=1&appid=727000002&daid='+daid+'&style=23&s_url=' + s_url;
+//
+//	}
+    	//tellogin & yunlogin
+	var	tabBar = $('.tab-bar'),
+	
+		qqLoginIsLoad = false,
+		
+		qrTimer = null,
+		
+		pollAjax = null,
+		
+		pollKey = '',
+		
+		search = location.search,
+		tabSwitch = function(t){
+			if(pollAjax){
+						cancelKey();
+						}
+				yLogin()
+		}
+		// tabSwitch = function(t){
+		// 	var hash = t[0].hash,
+		// 		tabs = $('#qqLogin,#txlLogin,#telLogin,#yunLogin');
+			
+		// 	if(!t.hasClass('current')){
+				
+		// 		if(pollAjax){
+		// 			cancelKey();
+		// 		}
+				
+		// 		tabs.hide();
+		// 		switch(hash){
+		// 		// case '#qqLogin':  
+		// 		// case '#txlLogin':  
+		// 		// 	if(isLogin){	//判断是否登录，如果登录就进二级密码页面
+		// 		// 		hash = '#txlLogin';
+						
+		// 		// 		$('#qqLogin').hide();
+		// 		// 	}else if(!qqLoginIsLoad){
+		// 		// 		//$('#login_frame').attr('src',loginurl);
+		// 		// 		//openWindow(cqLoginUrl);
+		// 		// 		qqLoginIsLoad = true;
+		// 		// 	}
+		// 		// 	qrHide();
+		// 		// 	break;
+		// 		// case '#telLogin':
+		// 		// 	qrHide();
+		// 		// break;
+		// 		case '#yunLogin':
+		// 			yLogin();
+		// 		break;
+		// 		}
+				
+		// 		$(hash).fadeIn(500);
+		// 		$('#pimpwdMd5,#input_mobile').focus();
+		// 		t.addClass('current').siblings().removeClass('current');
+		// 	}
+		// }
+
+		// yLogin = function(){
+		// 	// $('.msg-box').hide();
+		// 	// $('.qr-p').fadeIn(500);
+		// 	// $('.status').html('请使用”帐号与设置-我的帐号“，登录后右上角扫一扫功能');
+		// 	getYunCode();
+		// },
+		
+		// qrHide = function(){
+		// 	var qr = $('.qr-p');
+		// 	if(qr.is(':visible')){
+		// 		$('.msg-box').fadeIn(500);
+		// 		qr.hide();
+		// 	}
+		// },
+		yLogin = function(){
+			$('.status').html('请使用QQ同步助手APP扫描二维码');
+			getYunCode();
+		}
+		getYunCode = function(){
+			$.ajax({
+				url: contextPath + '/o/sessionkey.jsp?' + new Date().getTime(),
+				// url:  'https://ic.qq.com/o/sessionkey.jsp?' + new Date().getTime(),
+				type: 'post',
+				dataType: 'json',
+				success: function(data){
+					console.log('====data===>>>',data)
+					if(!data) location.reload();console.log('location.reload()')
+					if(data && data.result === '0') {
+						var img = $('#qrCode');
+						img.attr('src',contextPath + '/o/skqrcode.jsp?width=246&height=246&sid=' + data.info.first);
+						// img.attr('src','https://ic.qq.com/o/skqrcode.jsp?width=250&height=250&sid=' + data.info.first);
+						pollKey = data.info.second;				
+						poll(pollKey);
+					}
+				},
+				error: function(){
+					alert('error');
+				}
+			});
+		},
+		
+		cancelKey = function(){
+			if(pollAjax != null){
+				pollAjax.abort();
+			}
+			clearTimeout(qrTimer);
+			// $.ajax({
+   //          	url: contextPath + '/o/out.jsp?sid=' + pollKey,
+   //          	async : false
+   //     		 });
+		},
+		
+		poll = function(key){
+			pollAjax = $.post(contextPath + '/o/check.jsp?sid=' + key + '&r=' + new Date().getTime(), function(json){
+				// pollAjax = $.post('https://ic.qq.com/o/check.jsp?sid=' + key + '&r=' + new Date().getTime(), function(json){
+			if(!json) return;
+				var v = $.trim(json.info.status),
+					tip = $('.status');
+					console.log('poll-->>>>>>>>>',v)
+				switch(v){
+				case 'scan': 		tip.html('扫描成功，请手机校验身份'); break;
+				case 'login': 		tip.html('验证成功！请点击客户端确认登录'); break;
+				case 'cancel': 		
+				case 'expire': 	
+				// tip.html('请使用”帐号与设置-我的帐号“，登录后右上角扫一扫功能');	
+				case 'loginfail': 	tip.html('请使用QQ同步助手APP扫描二维码');  getYunCode();console.log('loginfail----------------------'); return; 
+				case 'confirm':
+					//tip.addClass('succ').html('登录成功，进入同步助手网页版');
+					////location = schema + "://" + serverName + contextPath + '/pim/contact.jsp?pim_sid=' + json.info.pimSid;
+					//location = schema + "://" + serverName + contextPath + '/pim/contact.jsp';
+					tip.addClass('succ').html('确认成功，进入手机号码验证流程');
+					location = schema + "://" + serverName + contextPath + '/pim/safeVerify.jsp';
+					return;
+				}
+				qrTimer = setTimeout(function(){poll(key);}, 1500);
+			},'json');
+		};
+		tabSwitch();
+	if(/mobile=/.test(search)){
+		// tabSwitch(tabBar.find('a[href=#telLogin]'));
+	}else if(/yun=1/.test(search)){
+		yLogin()
+	}else{
+		// tabSwitch(tabBar.find('a[href=#qqLogin]'));
+	}
+	
+	tabBar.delegate('a','click',function(){
+		tabSwitch($(this));
+		return false;
+	});
+	
+	$(window).unload(cancelKey);
+
+	if($.browser.msie && $.browser.version < 7){
+		$('.fuck-ie6').fadeIn(500).css('top',$(window).height() - 34);
+	}
+	
+	$('.logClass').on('click',function(e){
+		var action = $(this).attr('name');
+	    $.post(contextPath + '/pim/statistic_Analysis/pim_index_action.jsp', {
+	        action: action
+	    });
+	});
+
+	$('#useOtherQQLoginA').on('click',function(event){
+		event.preventDefault();
+		pt_logout.logout(function(n){
+			if(n === 2 || n === 1){
+				location.replace(contextPath + '/pim/login_out.jsp');
+			}else{
+				alert('安全退出失败，请重试！');
+			}
+		});
+	});
+    
+	$("#qqLoginBtn").on('click',function(event){
+		event.preventDefault();
+		openWindow(cqLoginUrl);
+	});
+	$(".tips_dw").on('click',function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		var isShow = $('.dowload_box').css('display')
+		if(isShow.indexOf('none') !== -1) $('.dowload_box').show()
+		else if(isShow.indexOf('block') !== -1) 	$('.dowload_box').hide()
+		$('.dowload_box').on('click',function(e){
+			 e.stopPropagation();
+		})
+			
+	})
+		
+//调整嵌入页面的尺寸布局，其中width,height分别为登录框内容需要的宽度和高度
+window.ptlogin2_onResize = function(width, height) {}
+
+
+$(window).load(function(){
+	setTimeout(function(){
+		var host = serverName + contextPath;
+		// if($.browser.msie){
+		// 	var cache = $('<iframe>').attr({
+		// 		src: '../include/preload.html'
+		// 	}).hide();
+
+		// 	$('body').append(cache);
+		// }
+		// else{
+			var cache = $('<iframe>').appendTo('body').hide().get(0),
+				doc = cache.contentWindow.document;
+			
+			var ibody = '<body onload="load()">'
+				+ '<script>'
+					+ 'window.onerror=function(){return true;};'
+					+ 'function load(){'
+					+ 'var head = document.getElementsByTagName("head")[0],'
+					+ 'link = document.createElement("link"),'
+					+ 's0 = document.createElement("script"),'
+					+ 's1 = s0.cloneNode(true);'
+					+ 'link.setAttribute("rel","stylesheet");'
+					+ 'head.appendChild(link);'
+					+ 'head.appendChild(s0);'
+					+ 'head.appendChild(s1);'
+					+ 'link.href = "//'+ host +'/release/css/contact.css";'
+					+ 's0.src = "//'+ host +'/release/js/lib.js";'
+					+ 's1.src = "//'+ host +'/release/js/contact/main.js";'
+					+ '}'
+				+ '</script>'
+				+ '</body>';
+			doc.open().write(ibody);
+			doc.close();
+		// }
+		var c = '//'+ host +'/release/css/images/';
+		new Image().src = c + '5dde6149.menu-bg.png';
+		new Image().src = c + 'd753a592.h-icons.png';
+		new Image().src = c + '8d074b32.icons.png';
+		new Image().src = c + '290d0ace.group-item.png';
+		new Image().src = c + '7f6e87dd.btn-bg.png';
+		new Image().src = '//ic.qq.com/release/css/images/openhand.cur';//使用绝对路径
+		new Image().src = c + '8eaac437.i-search.png';
+		new Image().src = c + '32a1387e.i-icons.png';
+
+		 // new Image().src = c + '9cefec9d.s.gif?9cefec9d';
+		new Image().src = c + '705b8ae3.group-control-top.png';
+		new Image().src = c + 'aae35911.group-control-bottom.png';
+	},10);
+});
+
+});
