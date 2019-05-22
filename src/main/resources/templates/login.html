@@ -95,6 +95,7 @@ function aVerify(){
             type: 'post',
             url: '/login/checkVerify',
             dataType: "json",
+
             data: {
                 verifyInput: value1,
 				username: value2,
@@ -113,7 +114,7 @@ function aVerify(){
 				break;
 				case 4:
 				clerk.innerText="验证成功";
-				window.location.href="/center?id="+value2;
+				window.location.href="/center?id="+value2+"/&page=1";
 				break;
 				case 5:
 				clerk.innerText="服务器发生错误";

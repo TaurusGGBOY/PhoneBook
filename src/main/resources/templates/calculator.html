@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<script type="text/javascript" src="/jquery/jquery-3.4.1.min.js"></script>
+<script type="text/javascript">
+var c=0;
+var t;
+function setTimer()
+{
+	document.getElementById('count_time').text=c;
+ 	c=c+1;
+	if(c==11)
+	{
+		c=10
+		submit();
+		c=1	;
+	}
+	t=setTimeout("setTimer()",1000);
+}
+function toInt(number) {
+    return number*1 | 0 || 0;
+}
+
+function submit()
+{
+	var add_num = document.getElementById("add_num").text;
+	var added_num = document.getElementById("added_num").text;
+	var pattern = document.getElementById("pattern").text;
+	var resultans = document.getElementById("result").value;
+	var already = document.getElementById("already").text;
+	var total_time = document.getElementById("total_time").text;
+	var correct = document.getElementById("correct").text;
+	if(resultans=="")
+		resultans=0;
+	//console.log(add_num+added_num+pattern+resultans)
+        // alert(value);
+        $.ajax({
+            async: false,
+            type: 'post',
+            url: '/cal/answer',
+            dataType: "json",
+            //contentType:false,
+            //取消帮我们格式化数据，是什么就是什么
+            //processData:false,
+            data: {
+                addnum:add_num,
+				addednum:added_num,
+				pattern:pattern,
+				resultans:resultans,
+				time:c,
+				total_time:total_time,
+				already:already,
+				correct:correct
+            },
+            success: function (result) {
+            	//console.log("????");
+            	c=0;
+				//console.log(result);
+ 
+            	document.getElementById("add_num").text=result.result1;
+            	document.getElementById("added_num").text=result.result2;
+            	switch(result.result3){
+				case "0":
+				document.getElementById("pattern").text="*";
+				break;
+				case "1":
+				document.getElementById("pattern").text="+";
+				break;
+				case "2":
+				document.getElementById("pattern").text="-";
+				break;
+				case "3":
+				document.getElementById("pattern").text="/";
+				break;
+				}
+            	document.getElementById("result").value="";
+                switch(result.result0){
+				case 1:
+				document.getElementById("comment").innerText="计算正确";
+				break;
+				case 0:
+				document.getElementById("comment").innerText="计算错误";
+				break;
+				}
+                // window.location.reload();
+				document.getElementById("already").innerText=result.already
+				document.getElementById("correct").innerText=result.correct
+				document.getElementById("total_time").innerText=result.total_time
+                
+            }
+        });
+    }
+</script>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>高国彬基于Struts2和Ajax的小学算术四则运算练习</title>
+</head>
+<body onload="setTimer()">
+<div id = "tips">
+<p id="passage">
+1.后台随机生成两个1000以内整数以及+，-，*，/运算符；<br>
+2.前台网页（或Android APP）显示算式、计算结果文本输入框、提交答案按钮、结束按钮：<br>
+  单击提交答案按钮，将答案提交到后台验证正确性，返回正/误结果以及新的算式；<br>
+  单击结束按钮，停止程序。<br>
+3.前台每个算式提交答案前显示计时，10秒内不提交答案，视为答案有误，前台定时器事件提交此信息到<br>
+后台，后台产生新的算式发回前台；<br>
+4. 前台所有提交（请求）均为Ajax请求；<br>
+5. 后台接收前台请求全部送给Struts2的POJO处理；<br>
+6. 后台Session对象（或JavaBean对象）记录已经产生的算式数目，已经正确提交的答案数目，总计用时；<br>
+后台接收每次Ajax请求，将这些信息与新产生的算式一块儿发到前台。<br>
+7. 第一次请求网页(或刚启动Android APP)时，网页(Android APP界面)显示相关提示（如计算规则，超时<br>
+规则等）信息和一个开始按钮，单击开始按钮则启动以上程序功能。<br>
+</p>
+<button type="button" id="start" onclick="startCal()">开始</button>
+</div>
+
+<div style="display: none;" id="calcular">
+<div>
+<a>已经产生的算式数目:</a>
+<a id="already">1</a>
+<a>已经正确提交的算式数目:</a>
+<a id="correct">0</a>
+<a>总计用时：</a>
+<a id="total_time">0</a>
+<br>
+</div>
+
+<div>
+<a>计时：</a>
+<a id="count_time">1</a>
+<br>
+</div>
+
+<div id="answer">
+<a id="add_num">100</a>
+<a id="pattern">+</a>
+<a id="added_num">100</a>
+<a>=</a>
+<input type="text" id="result"></input>
+<input type="submit" value="提交" onclick="submit()"></input>
+</div>
+
+<div>
+<p id="comment"> </p>
+</div>
+
+</div>
+</body>
+<script type="text/javascript">
+function startCal()
+{
+	document.getElementById("tips").style.display="none";//隐藏
+	document.getElementById("calcular").style.display="";//显示
+}
+</script>
+</html>
